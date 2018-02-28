@@ -10,7 +10,7 @@ import pandas as pd
 
 # Test UCB1 using stochastic payoffs
 num_bandits = 4
-numRounds = 5000
+numRounds = 10000
 
 # upperBound: int, int -> float
 # the size of the upper confidence bound for ucb1
@@ -88,23 +88,25 @@ numPlays_vert = numPlays_array.reshape((-1, num_bandits))
 true_row_count = len(numPlays_vert)
 
 # Plot regret
-ax1 = plt.subplot(111)
-plt.ylabel('Cumulative Regret')
-ax1.plot(t_list, regret_list, label="Regret")
-ax1.plot(t_list, regretBound_list, label="UCB")
-plt.title('Regret with UCB')
-plt.show()
+n = arange(true_row_count)+1
+
+from pylab import *
+subplot(211)
+plot(t_list, regret_list, label="Regret")
+plot(t_list, regretBound_list, label="UCB")
+title('Regret from UCB1 Algorithm')
+ylabel('Cumulative Regret')
+
+legend()
+show()
 
 
 # Plot bandit evolution
-from pylab import *
 subplot(211)
-n = arange(true_row_count)+1
 
 for k in range(num_bandits):
     plot(n, numPlays_vert[:, k], label="Arm %d" % k)
 
-legend()
 title('Simulated Allocations per Arm (%i Simulated Events)' % true_row_count)
 xlabel("Number of Events")
 ylabel("Allocations")
