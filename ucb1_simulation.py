@@ -7,10 +7,11 @@ import numpy as np
 import sys
 import pandas as pd
 
-
-# Test UCB1 using stochastic payoffs
+### UCB Parameters ###
 num_bandits = 4
-numRounds = 10000
+numRounds = 50000
+######################
+
 
 # upperBound: int, int -> float
 # the size of the upper confidence bound for ucb1
@@ -23,8 +24,11 @@ def upperBound(step, numPlays):
 # input the action and producing as output the reward for that action
 
 numPlays_array = []
+payoffSums_array = []
+
 def ucb1(num_bandits, reward):
     global numPlays_array
+    global payoffSums_array
     payoffSums = [0] * num_bandits
     numPlays = [1] * num_bandits
     ucbs = [0] * num_bandits
@@ -41,10 +45,12 @@ def ucb1(num_bandits, reward):
         action = max(range(num_bandits), key=lambda i: ucbs[i])
 
         theReward = reward(action, t)
+
         numPlays[action] += 1
         numPlays_array = np.append(numPlays_array, numPlays)
 
         payoffSums[action] += theReward
+        payoffSums_array = np.append(payoffSums_array, payoffSums)
 
         yield action, theReward, ucbs
         t = t + 1
@@ -56,7 +62,8 @@ deltas = [means[0] - x for x in means[1:]]
 deltaSum = sum(deltas)
 invDeltaSum = sum(1/x for x in deltas)
 
-bestAction = 0
+#bestAction = 0
+
 rewards = lambda choice, t: random.random() + biases[choice]
 
 cumulativeReward = 0
@@ -65,13 +72,14 @@ bestActionCumulativeReward = 0
 regret_list =[]
 regretBound_list=[]
 t_list=[]
-#successes = zeros(shape=(numRounds,num_bandits))
 
 t = num_bandits
 
 for (choice, reward, ucbs) in ucb1(num_bandits, rewards):
+    randomAction = random.randint(0, num_bandits)
     cumulativeReward += reward
-    bestActionCumulativeReward += reward if choice == bestAction else rewards(bestAction, t)
+    bestActionCumulativeReward += reward if choice == randomAction else rewards(randomAction, t)
+
     regret = bestActionCumulativeReward - cumulativeReward
     regret_list.append(regret)
     regretBound = 8 * math.log(t + 5) * invDeltaSum + (1 + math.pi*math.pi / 3) * deltaSum
@@ -85,7 +93,9 @@ for (choice, reward, ucbs) in ucb1(num_bandits, rewards):
 
 # Reshape to be N by Number of Bandits
 numPlays_vert = numPlays_array.reshape((-1, num_bandits))
+payoffSums_vert = payoffSums_array.reshape((-1, num_bandits))
 true_row_count = len(numPlays_vert)
+
 
 # Plot regret
 n = arange(true_row_count)+1
@@ -94,8 +104,22 @@ from pylab import *
 subplot(211)
 plot(t_list, regret_list, label="Regret")
 plot(t_list, regretBound_list, label="UCB")
-title('Regret from UCB1 Algorithm')
+title('Overall Regret from UCB1 Algorithm')
 ylabel('Cumulative Regret')
+
+legend()
+show()
+
+
+# Plot bandit reward evolution
+subplot(211)
+
+for k in range(num_bandits):
+    plot(n, payoffSums_vert[:, k], label="Arm %d" % k)
+
+title('Rewards per Arm (%i Simulated Events)' % true_row_count)
+xlabel("Number of Events")
+ylabel("Cumulative Reward")
 
 legend()
 show()
