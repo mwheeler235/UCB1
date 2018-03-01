@@ -55,14 +55,15 @@ def ucb1(num_bandits, reward):
         yield action, theReward, ucbs
         t = t + 1
 
-
+# Assign biases tapering off (arm 0 is most biased toward reward)
 biases = [1.0 / k for k in range(5,5+num_bandits)]
 means = [0.5 + b for b in biases]
 deltas = [means[0] - x for x in means[1:]]
 deltaSum = sum(deltas)
 invDeltaSum = sum(1/x for x in deltas)
 
-#bestAction = 0
+# Must choose theoretical best action
+bestAction = 0
 
 rewards = lambda choice, t: random.random() + biases[choice]
 
@@ -76,9 +77,10 @@ t_list=[]
 t = num_bandits
 
 for (choice, reward, ucbs) in ucb1(num_bandits, rewards):
-    randomAction = random.randint(0, num_bandits)
+    #randomAction = random.randint(0, num_bandits)
+
     cumulativeReward += reward
-    bestActionCumulativeReward += reward if choice == randomAction else rewards(randomAction, t)
+    bestActionCumulativeReward += reward if choice == bestAction else rewards(bestAction, t)
 
     regret = bestActionCumulativeReward - cumulativeReward
     regret_list.append(regret)
